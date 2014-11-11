@@ -42,8 +42,9 @@
 
 
   var mod = angular.module('componentModule', ['ui.router'])
+  .constant('EXTRA_PADDING', 3)
       
-  .directive('holyGrail', function($window, $timeout){
+  .directive('holyGrail', function($window, $timeout, EXTRA_PADDING){
     return {
       restrict:'E',
       scope:{showWest:'=',showEast:'='},
@@ -60,78 +61,91 @@
         
         var westClassInfo = {
           width: getClassStyle('.west-col', 'width')['width'],
-          minWidth: parseInt(getClassStyle('.west-col', 'min-width')['min-width']),
-          maxWidth: parseInt(getClassStyle('.west-col', 'max-width')['max-width']),
-          padding: parseInt(getClassStyle('.west-col', 'padding')['padding']),
-          left: parseInt(getClassStyle('.west-col', 'left')['left'])
+          minWidth: getClassStyle('.west-col', 'min-width')['min-width'],
+          maxWidth: getClassStyle('.west-col', 'max-width')['max-width'],
+          padding: getClassStyle('.west-col', 'padding')['padding'],
+          left: getClassStyle('.west-col', 'left')['left']
         };
         
         var eastClassInfo = {
           width: getClassStyle('.east-col', 'width')['width'],
-          minWidth: parseInt(getClassStyle('.east-col', 'min-width')['min-width']),
-          maxWidth: parseInt(getClassStyle('.east-col', 'max-width')['max-width']),
-          padding: parseInt(getClassStyle('.east-col', 'padding')['padding']),
-          right: parseInt(getClassStyle('.east-col', 'right')['right'])
+          minWidth: getClassStyle('.east-col', 'min-width')['min-width'],
+          maxWidth: getClassStyle('.east-col', 'max-width')['max-width'],
+          padding: getClassStyle('.east-col', 'padding')['padding'],
+          right: getClassStyle('.east-col', 'right')['right']
         };
 
         console.log(eastClassInfo)
 
+        function determinePixelSize(parentSize, classInfo){
+          var retSize = 0;
+
+          var classWidth = normalizePercentAndPixel(classInfo.width, parentSize);
+          var classMinWidth = normalizePercentAndPixel(classInfo.minWidth, parentSize);
+          var classMaxWidth = normalizePercentAndPixel(classInfo.maxWidth, parentSize);
+
+          if(classWidth < classMinWidth)
+            classWidth = classMinWidth;
+          if(classWidth > classMaxWidth)
+            classWidth = classMaxWidth;
+
+          return Math.ceil(classWidth);
+        }
+
+        function normalizePercentAndPixel(stringValue, parentSize){
+          var parsed = parseInt(stringValue);
+          if(stringValue.indexOf("%")!=-1)
+            return parsed/100*parentSize;
+          else
+            return parsed;
+        }
+
         function calcEastAndWest(){
-          var parElement = scope.panels['eastBody'].parent()[0];
-          console.log(parElement)
-          console.log('parent width',parElement.clientWidth);
-          console.log('eastClass',eastClassInfo);
-          console.log('westClass',westClassInfo);
-
-          if(westClassInfo.width.indexOf("%")!=-1)
-            westWidth = parElement.clientWidth*parseInt(westClassInfo.width)/100;
-          else
-            westWidth = parElement.clientWidth*westClassInfo.width;
-
-          if(westWidth<westClassInfo.minWidth)
-            westWidth = westClassInfo.minWidth;
-          if(westWidth>westClassInfo.maxWidth)
-            westWidth = westClassInfo.maxWidth;
-
-          if(eastClassInfo.width.indexOf("%")!=-1)
-            eastWidth = parElement.clientWidth*parseInt(eastClassInfo.width)/100;
-          else
-            eastWidth = parElement.clientWidth*eastClassInfo.width;
-
-          if(eastWidth<eastClassInfo.minWidth)
-            eastWidth = eastClassInfo.minWidth;
-          if(eastWidth>eastClassInfo.maxWidth)
-            eastWidth = eastClassInfo.maxWidth;
+          var parElementWidth = scope.panels['eastBody'].parent()[0].clientWidth;
+          
+          westWidth = determinePixelSize(parElementWidth, westClassInfo);
+          eastWidth = determinePixelSize(parElementWidth, eastClassInfo);
 
           console.log(westWidth,eastWidth);
 
-          $timeout(scope.updateStyles);
+          $timeout(updateStyles);
         };
-        scope.updateStyles = function () {
+        
+        function updateStyles() {
+          var parElementWidth = scope.panels['eastBody'].parent()[0].clientWidth;
+
+          var westLeft = normalizePercentAndPixel(westClassInfo.left, parElementWidth);
+          var westPadding = normalizePercentAndPixel(westClassInfo.padding, parElementWidth);
+          var eastRight = normalizePercentAndPixel(eastClassInfo.right, parElementWidth);
+          var eastPadding = normalizePercentAndPixel(eastClassInfo.padding, parElementWidth);
           
           var newStyle = {};
           
           if(!scope.showWest) {
-            newStyle.left=westClassInfo.left+"px";
+            newStyle.left=westClassInfo.left;
+            scope.panels['westBody'][0].style.left = scope.panels['westHead'][0].style.left = scope.panels['westFoot'][0].style.left = -(westWidth+westPadding*2) + "px";
           }
           else {
-            newStyle.left = (westWidth+westClassInfo.padding*2+westClassInfo.left+1)+"px";
+            newStyle.left = (westWidth+westPadding*2+westLeft+EXTRA_PADDING)+"px";
+            scope.panels['westBody'][0].style.left = scope.panels['westHead'][0].style.left = scope.panels['westFoot'][0].style.left = westLeft + "px";
           }
 
           if(!scope.showEast) {
-            newStyle.right = eastClassInfo.right+"px";
+            newStyle.right = eastClassInfo.right;
+            scope.panels['eastBody'][0].style.right = scope.panels['eastHead'][0].style.right = scope.panels['eastFoot'][0].style.right = -(eastWidth+eastPadding*2) + "px";
           }
           else {
-            newStyle.right = (eastWidth+eastClassInfo.padding*2+eastClassInfo.right+1)+"px";
+            newStyle.right = (eastWidth+eastPadding*2+eastRight+EXTRA_PADDING)+"px";
+            scope.panels['eastBody'][0].style.right = scope.panels['eastHead'][0].style.right = scope.panels['eastFoot'][0].style.right = eastRight + "px";
           }
 
           angular.extend(scope.panels['mainBody'][0].style, newStyle);
           angular.extend(scope.panels['mainHead'][0].style, newStyle);
           angular.extend(scope.panels['mainFoot'][0].style, newStyle);
-        }
+        };
 
-        scope.$watch('showWest', scope.updateStyles);
-        scope.$watch('showEast', scope.updateStyles);
+        scope.$watch('showWest', updateStyles);
+        scope.$watch('showEast', updateStyles);
 
         angular.element($window).bind('resize', calcEastAndWest);
         angular.element(document).ready(calcEastAndWest);
@@ -153,7 +167,7 @@
       });
     }
     
-    var panels = ["westBody", "eastBody", "mainBody", "mainHead", "mainFoot"];
+    var panels = ["westBody", "westHead", "westFoot", "eastBody", "eastHead", "eastFoot", "mainBody", "mainHead", "mainFoot"];
 
     for (var i = panels.length - 1; i >= 0; i--) {
       var curPanel = panels[i];

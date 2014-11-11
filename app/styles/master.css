@@ -29,7 +29,7 @@ html, body, .desktop-layout {
     width: 20%;  min-width: 60px;  max-width: 275px;
 }
 /********************************************************( Heights )*/
-.head-row, .body-row, .foot-row {transition: all linear .2s;}
+.head-row, .body-row, .foot-row {transition: all linear .5s;}
 .head-row { height: 60px;}
 .foot-row { height: 60px;}
 /*.body-row { height: auto;}*/
