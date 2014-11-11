@@ -29,7 +29,31 @@
 
 	<!-- BODY -->
 	<body>
-		<h1>The perfect place to build components</h1>
+
+		<holy-grail
+		  ng-controller="TestCtrl"
+		  show-west="myModel.showWest"
+		  show-east="myModel.showEast"
+		  class="desktop-layout">
+
+		    <div class="west-head west-col head-row">1</div>
+		    <div class="west-body west-col body-row">2</div>
+		    <div class="west-foot west-col foot-row">3</div>
+
+		    <div class="main-head main-col head-row">4</div>
+		    <div class="main-body main-col body-row">5
+	        <button class="btn btn-primary" ng-click="toggle();">Toggle</button>
+	        <button class="btn btn-primary" ng-click="toggleWest();">Toggle West</button>
+	        <button class="btn btn-primary" ng-click="toggleEast();">Toggle East</button>
+	      </div>
+		    <div class="main-foot main-col foot-row">6</div>
+
+		    <div class="east-head east-col head-row">7</div>
+		    <div class="east-body east-col body-row">8</div>
+		    <div class="east-foot east-col foot-row">9</div>
+		</holy-grail>
+
+
 		<!-- AngularJS and components thereof -->
 		<script
 			type="text/javascript"
@@ -57,10 +81,9 @@
 			src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js">
 		</script>
 
-		<!-- ReCaptcha (requires php folder as well) -->
 		<script
 			type="text/javascript"
-			src="//www.google.com/recaptcha/api/js/recaptcha_ajax.js">
+			src="bower_components/angular-ui-router/release/angular-ui-router.js">
 		</script>
 		
 		<script

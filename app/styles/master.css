@@ -1,3 +1,51 @@
-h1{
-  text-align: center;
+/********************************************************( Desktop )*/
+.desktop-layout{
+  display: inline-block;
 }
+html, body, .desktop-layout {
+    background-color: #707373;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/*****************************************************( Background )*/
+.west-col, .main-col, .east-col
+{
+    background-color: #252828;
+    color: #000000;
+    overflow: hidden;
+    padding: 9px;
+}
+.east-col{
+  background-color: #ff0000;
+}
+.west-col{
+  background-color: #00ff00;
+}
+.body-row { padding: 0 9px 0px 9px; }
+/****************************************************( Side Widths )*/
+.west-col, .east-col {
+    width: 20%;  min-width: 60px;  max-width: 275px;
+}
+/********************************************************( Heights )*/
+.head-row, .body-row, .foot-row {transition: all linear .2s;}
+.head-row { height: 60px;}
+.foot-row { height: 60px;}
+/*.body-row { height: auto;}*/
+/*****************************************************( Positions )*/
+.head-row { position: absolute;  top: 3px; }
+.body-row { position: absolute;  top: 82px; bottom: 82px; }
+.foot-row { position: absolute;  bottom: 3px; }
+.west-col { position: absolute;  left: 3px; }
+.east-col { position: absolute;  right: 3px; }
+.main-col {z-index: 100; left:0px; right:0px;}
+
+/*****************************************************( Bootstrap Override )*/
+.west-col, .main-col, .east-col
+{
+  box-sizing:initial;
+}
+
+
+/*****************************************************( End of App )*/
