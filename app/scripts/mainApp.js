@@ -5,7 +5,7 @@
   *
   * Just an app for testing out the module
   */
-  angular.module('mainApp', ['componentModule'])
+  angular.module('mainApp', ['itHolyGrail'])
     .controller('TestCtrl', function ($scope) {
         
       $scope.myModel = {

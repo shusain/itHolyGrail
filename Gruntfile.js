@@ -241,7 +241,7 @@ module.exports = function (grunt) {
         },
         dist: {
             files: {
-                '<%= yeoman.dist %>/component-min.js': ['<%= yeoman.dist %>/*.js']
+                '<%= yeoman.dist %>/itHolyGrail.js': ['<%= yeoman.dist %>/*.js']
             },
         },
     },
@@ -312,8 +312,8 @@ module.exports = function (grunt) {
     uglify: {
       dist: {
         files: {
-          '<%= yeoman.dist %>/component-min.js': [
-            '<%= yeoman.dist %>/component-min.js'
+          '<%= yeoman.dist %>/itHolyGrail.js': [
+            '<%= yeoman.dist %>/itHolyGrail.js'
           ]
         }
       }
@@ -327,7 +327,7 @@ module.exports = function (grunt) {
       },
       dist: {
         src: ['app/component/**/*.js', '.tmp/templates.js'],
-        dest: 'dist/component-min.js'
+        dest: 'dist/itHolyGrail.js'
       }
     },
 

@@ -2,12 +2,12 @@
   'use strict';
   
   /**
-  * componentModule Module
+  * itHolyGrail Module
   *
   * Description
   */
 
-  var mod = angular.module('componentModule', ['ui.router'])
+  var mod = angular.module('itHolyGrail', [])
   mod.service('StyleSheetHandler', function(){
     var StyleSheetHandler = {};
 
