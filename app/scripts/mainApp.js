@@ -26,10 +26,10 @@
           },
           headRowHeight: '60px',
           footRowHeight: '60px',
-          outsideBorder: '3px',
-          insideBorder: '3px',
+          outsideBorder: '10px',
+          insideBorder: '5px',
           insidePadding: '9px',
-          transition: 'all linear .5s'
+          transition: 'all linear .1s'
         }
       };
 
