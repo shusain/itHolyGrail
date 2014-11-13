@@ -22,10 +22,7 @@ html, body, .desktop-layout {
 .west-col{
   background-color: #252828;
 }
-.body-row { padding: 0 9px 0px 9px; }
-
-/*****************************************************( Transition )*/
-.head-row, .body-row, .foot-row {transition: all linear .5s;}
+.body-row { padding: 0 9px 0px 9px !important; }
 
 /*****************************************************( Bootstrap Override )*/
 .west-col, .main-col, .east-col

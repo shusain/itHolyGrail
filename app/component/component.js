@@ -8,7 +8,7 @@
   */
 
   var mod = angular.module('componentModule', ['ui.router'])
-  mod.factory('StyleSheetHandler', function(){
+  mod.service('StyleSheetHandler', function(){
     var StyleSheetHandler = {};
 
     StyleSheetHandler.createStyleSheet = function(){
@@ -94,23 +94,23 @@
       //Finally after we have the stylesheet to use we need to add the new rule appropriately
       //this searches for an existing matching rule
       if(mediaType == "string") {
-        // for(var i = 0; i < styleSheet.rules.length; i++) {
-        //   if(styleSheet.rules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
-        //     styleSheet.rules[i].style.cssText = style;
-        //     return;
-        //   }
-        // }
+        for(var i = 0; i < styleSheet.rules.length; i++) {
+          if(styleSheet.rules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
+            styleSheet.rules[i].style.cssText = style;
+            return;
+          }
+        }
 
         //If we didn't find a matching rule we add the rule
         styleSheet.addRule(selector, style);
 
       } else if(mediaType == "object") {
-        // for(var i = 0; i < styleSheet.cssRules.length; i++) {
-        //   if(styleSheet.cssRules[i].selectorText && styleSheet.cssRules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
-        //     styleSheet.cssRules[i].style.cssText = style;
-        //     return;
-        //   }
-        // }
+        for(var i = 0; i < styleSheet.cssRules.length; i++) {
+          if(styleSheet.cssRules[i].selectorText && styleSheet.cssRules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
+            styleSheet.cssRules[i].style.cssText = style;
+            return;
+          }
+        }
 
         //Again but for other browsers if we didn't find the rule we add a new rule
         styleSheet.insertRule(selector + "{" + style + "}", styleSheet.cssRules.length);
@@ -126,7 +126,12 @@
   .directive('holyGrail', function($window, $timeout, StyleSheetHandler){
     return {
       restrict:'E',
-      scope:{showWest:'=',showEast:'='},
+      scope:{
+        showWest:'=',
+        showEast:'=',
+        showHead:'=',
+        showFoot:'=',
+        layoutConfig:'='},
       controller:function($scope){
         $scope.panels = [];
         
@@ -135,6 +140,7 @@
         }
       },
       link:function(scope, element, attr){
+
         console.log(element[0].offsetWidth);
         var eastWidth = 0;
         var westWidth = 0;
@@ -143,34 +149,35 @@
           westClassInfo: {
             width: "20%",
             minWidth: "60px",
-            maxWidth: "275px",
-            padding: "9px"
+            maxWidth: "275px"
           },
           eastClassInfo:{
             width: "20%",
             minWidth: "60px",
-            maxWidth: "275px",
-            padding: "9px"
+            maxWidth: "275px"
           },
           headRowHeight: "60px",
           footRowHeight: "60px",
           outsideBorder: "3px",
           insideBorder: "3px",
-          insidePadding: "9px"
+          insidePadding: "9px",
+          transition: 'all linear .1s'
         }
 
+        angular.extend(layoutConfig, scope.layoutConfig);
+
         //Some aliases
-        var cc, calculatedConfig;
+        var cc;
         var wci;
         var eci;
 
-        cc = calculatedConfig = {};
+        var calculatedConfig = cc = {};
         var lc = layoutConfig;
 
         //Function determines all the pixel sizes as Numbers
         //based on the string input, converts each based on
         //the percentage or the value supplied.
-        function calcPixelSizes(inputObj, resultObj){
+        function _calcPixelSizes(inputObj, resultObj){
           _.forOwn(inputObj, function(value, key, obj){
             if(key == "width"){
               resultObj[key] = determinePixelSize(obj); 
@@ -183,7 +190,14 @@
               calcPixelSizes(value, resultObj[key]);
             }
           });
-        }
+        };
+        
+        function calcPixelSizes(inputObj, resultObj){
+          _calcPixelSizes(inputObj, resultObj);
+
+          wci = cc.westClassInfo;
+          eci = cc.eastClassInfo;
+        };
 
         function determinePixelSize(classInfo){
           var classWidth = normalizePercentAndPixel(classInfo.width);
@@ -203,15 +217,16 @@
           if(stringValue.indexOf("%")!=-1)
             return parsed/100*element[0].offsetWidth;
           else
-            return parsed;
+          {
+            if(!isNaN(parsed))
+              return parsed;
+            return 0;
+          }
         }
 
-        function calcEastAndWest(){
+        function recalcSizes(){
           calcPixelSizes(lc, cc);
-          wci = cc.westClassInfo;
-          eci = cc.eastClassInfo;
-
-          $timeout(updateStyles);
+          updateStyles();
         };
         
         function updateStyles() {
@@ -220,64 +235,85 @@
           westWidth = wci.width;
           eastWidth = eci.width;
           
+          //Used to setup the main column styles
           var newStyle = {};
           
           if(!scope.showWest) {
             newStyle.left=cc.outsideBorder + "px";
-            scope.panels['westBody'][0].style.left = scope.panels['westHead'][0].style.left = scope.panels['westFoot'][0].style.left = -(westWidth+wci.padding*2) + "px";
+            
+            scope.panels['westBody'][0].style.left = scope.panels['westHead'][0].style.left = scope.panels['westFoot'][0].style.left = -(westWidth+cc.insidePadding*2) + "px";
           }
           else {
             newStyle.left = (westWidth+cc.insideBorder+cc.outsideBorder+cc.insidePadding*2)+"px";
             scope.panels['westBody'][0].style.left = scope.panels['westHead'][0].style.left = scope.panels['westFoot'][0].style.left = cc.outsideBorder + "px";
           }
 
+
           if(!scope.showEast) {
             newStyle.right = cc.outsideBorder + "px";
-            scope.panels['eastBody'][0].style.right = scope.panels['eastHead'][0].style.right = scope.panels['eastFoot'][0].style.right = -(eastWidth+eci.padding*2) + "px";
+            scope.panels['eastBody'][0].style.right = scope.panels['eastHead'][0].style.right = scope.panels['eastFoot'][0].style.right = -(eastWidth+cc.insidePadding*2) + "px";
           }
           else {
             newStyle.right = (eastWidth+cc.insideBorder+cc.outsideBorder+cc.insidePadding*2)+"px";
             scope.panels['eastBody'][0].style.right = scope.panels['eastHead'][0].style.right = scope.panels['eastFoot'][0].style.right = cc.outsideBorder + "px";
           }
 
+          var bodyRow = {};
+          if(!scope.showHead){
+            bodyRow.top = cc.outsideBorder;
+            StyleSheetHandler.createCSSSelector('.head-row', 'position: absolute;  top: '+(-(cc.outsideBorder+cc.headRowHeight+cc.insidePadding*2))+'px;height:'+cc.headRowHeight+'px;');
+          }
+          else{
+            StyleSheetHandler.createCSSSelector('.head-row', 'position: absolute;  top: '+cc.outsideBorder+'px;height:'+cc.headRowHeight+'px;');
+            bodyRow.top = cc.headRowHeight+cc.outsideBorder+cc.insideBorder+cc.insidePadding*2;
+          }
+          if(!scope.showFoot){
+            bodyRow.bottom = cc.outsideBorder;
+            StyleSheetHandler.createCSSSelector('.foot-row', 'position: absolute;  bottom: '+(-(cc.outsideBorder+cc.footRowHeight+cc.insidePadding*2))+'px;height:'+cc.footRowHeight+'px;');
+          }
+          else{
+            StyleSheetHandler.createCSSSelector('.foot-row', 'position: absolute;  bottom: '+cc.outsideBorder+'px;height:'+cc.footRowHeight+'px;');
+            bodyRow.bottom = cc.footRowHeight+cc.outsideBorder+cc.insideBorder+cc.insidePadding*2;
+          }
+          StyleSheetHandler.createCSSSelector('.body-row', 'position: absolute;  top: '+bodyRow.top+'px; bottom: '+bodyRow.bottom+'px;');
+          
           angular.extend(scope.panels['mainBody'][0].style, newStyle);
           angular.extend(scope.panels['mainHead'][0].style, newStyle);
           angular.extend(scope.panels['mainFoot'][0].style, newStyle);
+
+          //Deal with CSS selectors
+          StyleSheetHandler.createCSSSelector('.west-col', 'position: absolute;  left: '+cc.outsideBorder+'px;width: '+wci.width+'px;');
+          StyleSheetHandler.createCSSSelector('.east-col', 'position: absolute;  right: '+cc.outsideBorder+'px;width: '+eci.width+'px;');
         };
 
         scope.$watch('showWest', updateStyles);
         scope.$watch('showEast', updateStyles);
+        scope.$watch('showHead', updateStyles);
+        scope.$watch('showFoot', updateStyles);
 
-        angular.element($window).bind('resize', calcEastAndWest);
+        angular.element($window).bind('resize', recalcSizes);
         angular.element(document).ready(setup);
 
         function setup(){
           calcPixelSizes(lc, cc);
-          wci = cc.westClassInfo;
-          eci = cc.eastClassInfo;
-          console.log(cc)
 
-          StyleSheetHandler.createCSSSelector('.west-col, .main-col, .east-col', 'padding:9px;');
-          // console.log('setting cw', 'width: '+wci.width+';  min-width: '+wci.minWidth+';  max-width: '+wci.maxWidth+';')
-          
-          /****************************************************( Side Widths )*/
-          StyleSheetHandler.createCSSSelector('.west-col','width: '+wci.width+'px;  min-width: '+wci.minWidth+'px;  max-width: '+wci.maxWidth+'px;')
-          StyleSheetHandler.createCSSSelector('.east-col','width: '+eci.width+'px;  min-width: '+eci.minWidth+'px;  max-width: '+eci.maxWidth+'px;')
-          
-          /********************************************************( Heights )*/
-          StyleSheetHandler.createCSSSelector('.head-row', 'height:'+cc.headRowHeight+'px;');
-          StyleSheetHandler.createCSSSelector('.foot-row', 'height:'+cc.footRowHeight+'px;');
-
-          /*****************************************************( Positions )*/
-          // var topOffset = cc.headRowHeight
-          StyleSheetHandler.createCSSSelector('.head-row', 'position: absolute;  top: '+cc.outsideBorder+'px;');
-          StyleSheetHandler.createCSSSelector('.body-row', 'position: absolute;  top: 82px; bottom: 82px;');
-          StyleSheetHandler.createCSSSelector('.foot-row', 'position: absolute;  bottom: 3px;');
-          StyleSheetHandler.createCSSSelector('.west-col', 'position: absolute;  left: 3px;');
-          StyleSheetHandler.createCSSSelector('.east-col', 'position: absolute;  right: 3px;');
-          StyleSheetHandler.createCSSSelector('.main-col', 'z-index: 100; left:0px; right:0px');
+          StyleSheetHandler.createCSSSelector('.west-col, .main-col, .east-col', 'padding:'+cc.insidePadding+'px;');
+             
+          /*****************************************************( Positions & Heights)*/
+          StyleSheetHandler.createCSSSelector('.head-row', 'position: absolute;  top: '+cc.outsideBorder+'px;height:'+cc.headRowHeight+'px;');
+          StyleSheetHandler.createCSSSelector('.body-row', 'position: absolute;  top: '+(cc.headRowHeight+cc.outsideBorder+cc.insideBorder+cc.insidePadding*2)+'px; bottom: '+(cc.footRowHeight+cc.outsideBorder+cc.insideBorder+cc.insidePadding*2)+'px;');
+          StyleSheetHandler.createCSSSelector('.foot-row', 'position: absolute;  bottom: '+cc.outsideBorder+'px;height:'+cc.footRowHeight+'px;');
+          StyleSheetHandler.createCSSSelector('.west-col', 'position: absolute;  left: '+cc.outsideBorder+'px;width: '+wci.width+'px;');
+          StyleSheetHandler.createCSSSelector('.east-col', 'position: absolute;  right: '+cc.outsideBorder+'px;width: '+eci.width+'px;');
+          StyleSheetHandler.createCSSSelector('.main-col', 'left:0px; right:0px');
 
           updateStyles();
+
+          //Delaying adding the transition so it's not seen on first load
+          $timeout(function(){
+            /*****************************************************( Transition )*/
+            StyleSheetHandler.createCSSSelector('.head-row, .body-row, .foot-row', 'transition:'+lc.transition+';');
+          })
         }
       }
     }

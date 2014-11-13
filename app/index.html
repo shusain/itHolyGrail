@@ -23,6 +23,11 @@
       type="text/css"
       href="styles/master.css">
 		<!-- endbuild -->
+		<style type="text/css">
+		[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+			display: none !important;
+		}
+		</style>
 
 	</head>
 
@@ -31,8 +36,12 @@
 	<body ng-controller="TestCtrl">
 
 		<holy-grail
+			ng-cloak
 		  show-west="myModel.showWest"
 		  show-east="myModel.showEast"
+		  show-head="myModel.showHead"
+		  show-foot="myModel.showFoot"
+		  layout-config="myModel.layoutConfig"
 		  class="desktop-layout">
 
 		    <div class="west-head west-col head-row">1</div>
@@ -44,6 +53,8 @@
 	        <button class="btn btn-primary" ng-click="toggle();">Toggle</button>
 	        <button class="btn btn-primary" ng-click="toggleWest();">Toggle West</button>
 	        <button class="btn btn-primary" ng-click="toggleEast();">Toggle East</button>
+	        <button class="btn btn-primary" ng-click="toggleHead();">Toggle Head</button>
+	        <button class="btn btn-primary" ng-click="toggleFoot();">Toggle Foot</button>
 	      </div>
 		    <div class="main-foot main-col foot-row">6</div>
 
