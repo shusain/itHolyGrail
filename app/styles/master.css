@@ -3,17 +3,22 @@
   display: inline-block;
 }
 html, body, .desktop-layout {
-    background-color: #707373;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+  background-color: #707373;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
+/*****************************************************( Absolutely positioned parts )*/
+.west-col, .main-col, .east-col, .head-row, .body-row, .foot-row{
+  position: absolute;
+}
+
 
 /*****************************************************( Background )*/
 .west-col, .main-col, .east-col
 {
     background-color: #252828;
-    color: #000000;
+    color:white;
     overflow: hidden;
 }
 .east-col{
@@ -22,13 +27,11 @@ html, body, .desktop-layout {
 .west-col{
   background-color: #252828;
 }
-.body-row { padding: 0 9px 0px 9px !important; }
 
 /*****************************************************( Bootstrap Override )*/
 .west-col, .main-col, .east-col
 {
   box-sizing:content-box;
 }
-
 
 /*****************************************************( End of HolyGrail CSS )*/

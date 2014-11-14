@@ -34,13 +34,11 @@
 
 	<!-- BODY -->
 	<body ng-controller="TestCtrl">
-
+		<debug-panel options="myModel.layoutConfig" ng-show="myModel.debugMode">
+		</debug-panel>
+			
 		<holy-grail
 			ng-cloak
-		  show-west="myModel.showWest"
-		  show-east="myModel.showEast"
-		  show-head="myModel.showHead"
-		  show-foot="myModel.showFoot"
 		  layout-config="myModel.layoutConfig"
 		  class="desktop-layout">
 
@@ -50,11 +48,8 @@
 
 		    <div class="main-head main-col head-row">4</div>
 		    <div class="main-body main-col body-row">5
-	        <button class="btn btn-primary" ng-click="toggle();">Toggle</button>
-	        <button class="btn btn-primary" ng-click="toggleWest();">Toggle West</button>
-	        <button class="btn btn-primary" ng-click="toggleEast();">Toggle East</button>
-	        <button class="btn btn-primary" ng-click="toggleHead();">Toggle Head</button>
-	        <button class="btn btn-primary" ng-click="toggleFoot();">Toggle Foot</button>
+		    	<button class="btn btn-primary" ng-click="myModel.debugMode = !myModel.debugMode">Debug</button>
+	        <!-- <pre>{{myModel.layoutConfig|json}}</pre> -->
 	      </div>
 		    <div class="main-foot main-col foot-row">6</div>
 
@@ -63,6 +58,7 @@
 		    <div class="east-foot east-col foot-row">9</div>
 		</holy-grail>
 
+		
 		<!-- LoDash -->
 		<script
 			type="text/javascript"

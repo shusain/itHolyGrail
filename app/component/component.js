@@ -1,14 +1,141 @@
 (function(){
   'use strict';
-  
+
+  angular.module('debugModule', [])
+
+  .factory('RecursionHelper', ['$compile', function($compile){
+    return {
+      /**
+       * Manually compiles the element, fixing the recursion loop.
+       * @param element
+       * @param [link] A post-link function, or an object with function(s) registered via pre and post properties.
+       * @returns An object containing the linking functions.
+       */
+      compile: function(element, link){
+        // Normalize the link parameter
+        if(angular.isFunction(link)){
+          link = { post: link };
+        }
+
+        // Break the recursion loop by removing the contents
+        var contents = element.contents().remove();
+        var compiledContents;
+        return {
+          pre: (link && link.pre) ? link.pre : null,
+          /**
+           * Compiles and re-adds the contents
+           */
+          post: function(scope, element){
+            // Compile the contents
+            if(!compiledContents){
+              compiledContents = $compile(contents);
+            }
+            // Re-add the compiled contents to the element
+            compiledContents(scope, function(clone){
+              element.append(clone);
+            });
+
+            // Call the post-linking function, if any
+            if(link && link.post){
+              link.post.apply(null, arguments);
+            }
+          }
+        };
+      }
+    };
+  }])
+
+  .directive('debugPanel', function(){
+    return {
+      restrict:'E',
+      scope: { options: '=' },
+      templateUrl:'component/templates/debugPanel.tpl.html'
+    };
+  })
+
+  .directive('optionsForm', function(RecursionHelper){
+    
+    return {
+      restrict:'E',
+      scope: {
+        options:'='
+      },
+      templateUrl:'component/templates/optionsForm.tpl.html',
+      compile: function(element){
+        return RecursionHelper.compile(element, function(scope){
+          scope.isObject = function(thingToCheck){
+            return angular.isObject(thingToCheck);
+          };
+          scope.getType = function(thingToCheck){
+            if(angular.isArray(thingToCheck))
+              return 'Array';
+            if(angular.isObject(thingToCheck))
+              return 'Object';
+            if(typeof thingToCheck === 'boolean')
+              return 'Boolean';
+            return 'Default';
+          };
+        });
+      }
+    };
+  })
+  // From the docs
+  .directive('myDraggable', function($document) {
+    return function(scope, element) {
+      var startX = 0, startY = 0, x = 0, y = 0;
+
+      element.css({
+       position: 'relative',
+       border: '1px solid red',
+       backgroundColor: 'lightgrey',
+       padding:'10px',
+       borderRadius: '10px',
+       cursor: 'pointer'
+      });
+
+      element.on('mousedown', function(event) {
+        // Prevent default dragging of selected content
+        event.preventDefault();
+        startX = event.pageX - x;
+        startY = event.pageY - y;
+        $document.on('mousemove', mousemove);
+        $document.on('mouseup', mouseup);
+      });
+
+      function mousemove(event) {
+        y = event.pageY - startY;
+        x = event.pageX - startX;
+        element.css({
+          top: y + 'px',
+          left:  x + 'px'
+        });
+      }
+
+      function mouseup() {
+        $document.off('mousemove', mousemove);
+        $document.off('mouseup', mouseup);
+      }
+    };
+  }).directive('blockMouseDown', function(){
+    return {
+      restrict:'A',
+      link:function(scope, iElem){
+        iElem.on('mousedown', function(event){
+          event.stopImmediatePropagation();
+        });
+      }
+    };
+  });
+
   /**
   * itHolyGrail Module
   *
   * Description
   */
 
-  var mod = angular.module('itHolyGrail', [])
-  mod.service('StyleSheetHandler', function(){
+  var mod = angular.module('itHolyGrail', ['debugModule'])
+
+  .service('StyleSheetHandler', function(){
     var StyleSheetHandler = {};
 
     StyleSheetHandler.createStyleSheet = function(){
@@ -16,18 +143,18 @@
         return;
       }
 
-      if(document.getElementsByTagName("head").length == 0) {
+      if(document.getElementsByTagName('head').length === 0) {
         return;
       }
 
       var styleSheet;
-      var GEN_ID = "generated";
+      var GEN_ID = 'generated';
 
-      var styleSheetElement = document.createElement("style");
-      styleSheetElement.type = "text/css";
+      var styleSheetElement = document.createElement('style');
+      styleSheetElement.type = 'text/css';
       styleSheetElement.title = GEN_ID;
 
-      document.getElementsByTagName("head")[0].appendChild(styleSheetElement);
+      document.getElementsByTagName('head')[0].appendChild(styleSheetElement);
 
       //Find the newly addded stylesheet object
       //since one wasn't found in the first loop above
@@ -43,22 +170,23 @@
         }
       }
 
-      return {mediaType:typeof styleSheet.media, styleSheet:styleSheet}
-    }
+      return {mediaType:typeof styleSheet.media, styleSheet:styleSheet};
+    };
 
     StyleSheetHandler.findEnabledScreenStylesheet = function(){
+      var styleSheet,mediaType;
       if(!document.styleSheets) {
         return;
       }
 
-      if(document.getElementsByTagName("head").length == 0) {
+      if(document.getElementsByTagName('head').length === 0) {
         return;
       }
       //If there are existing stylesheets
       if(document.styleSheets.length > 0) {
 
         //Iterate through them
-        for( i = 0; i < document.styleSheets.length; i++) {
+        for( var i = 0; i < document.styleSheets.length; i++) {
           //If a stylesheet is disabled skip this iteration
           if(document.styleSheets[i].disabled) {
             continue;
@@ -68,33 +196,34 @@
           mediaType = typeof media;
 
           //Check the media type (must vary between browsers)
-          if(mediaType == "string") {
+          if(mediaType == 'string') {
             //Check that the media target, if it targets the screen use it
-            if(media == "" || (media.indexOf("screen") != -1)) {
+            if(media === '' || (media.indexOf('screen') != -1)) {
               styleSheet = document.styleSheets[i];
             }
-          } else if(mediaType == "object") {
-            if(media.mediaText == "" || (media.mediaText.indexOf("screen") != -1)) {
+          } else if(mediaType == 'object') {
+            if(media.mediaText === '' || (media.mediaText.indexOf('screen') != -1)) {
               styleSheet = document.styleSheets[i];
             }
           }
 
           //If we have found a usable stylesheet during this iteration exit the loop
-          if( typeof styleSheet != "undefined") {
+          if( typeof styleSheet != 'undefined') {
             return styleSheet;
           }
         }
       }
-    }
+    };
 
     StyleSheetHandler.createCSSSelector = function(selector, style){
       var styleSheet = StyleSheetHandler.baseStyleSheet.styleSheet;
       var mediaType = StyleSheetHandler.baseStyleSheet.mediaType;
+      var i = 0;
 
       //Finally after we have the stylesheet to use we need to add the new rule appropriately
       //this searches for an existing matching rule
-      if(mediaType == "string") {
-        for(var i = 0; i < styleSheet.rules.length; i++) {
+      if(mediaType == 'string') {
+        for(i = 0; i < styleSheet.rules.length; i++) {
           if(styleSheet.rules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
             styleSheet.rules[i].style.cssText = style;
             return;
@@ -104,8 +233,8 @@
         //If we didn't find a matching rule we add the rule
         styleSheet.addRule(selector, style);
 
-      } else if(mediaType == "object") {
-        for(var i = 0; i < styleSheet.cssRules.length; i++) {
+      } else if(mediaType == 'object') {
+        for(i = 0; i < styleSheet.cssRules.length; i++) {
           if(styleSheet.cssRules[i].selectorText && styleSheet.cssRules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
             styleSheet.cssRules[i].style.cssText = style;
             return;
@@ -113,9 +242,9 @@
         }
 
         //Again but for other browsers if we didn't find the rule we add a new rule
-        styleSheet.insertRule(selector + "{" + style + "}", styleSheet.cssRules.length);
+        styleSheet.insertRule(selector + '{' + style + '}', styleSheet.cssRules.length);
       }
-    }
+    };
 
     StyleSheetHandler.baseStyleSheet = StyleSheetHandler.createStyleSheet();
 
@@ -124,80 +253,148 @@
   })
   
   .directive('holyGrail', function($window, $timeout, StyleSheetHandler){
+    // Constants for the padding arrays
+    var TOP = 0;
+    var RIGHT = 1;
+    var BOTTOM = 2;
+    var LEFT = 3;
+
     return {
       restrict:'E',
       scope:{
-        showWest:'=',
-        showEast:'=',
-        showHead:'=',
-        showFoot:'=',
-        layoutConfig:'='},
+        layoutConfig:'='
+      },
       controller:function($scope){
-        $scope.panels = [];
+        // Keep a list of all the child panels we want to have access
+        // to directly from this directive.
+        $scope.panels = {};
         
         this.addPanel = function(name, panel){
           $scope.panels[name] = panel;
-        }
+        };
       },
-      link:function(scope, element, attr){
+      link:function(scope, element){
 
-        console.log(element[0].offsetWidth);
-        var eastWidth = 0;
-        var westWidth = 0;
+        var defaultBody = {
+          // Height calculated
+          padding: ['9px', '9px', '9px', '9px']
+        };
         
-        var layoutConfig = {
-          westClassInfo: {
-            width: "20%",
-            minWidth: "60px",
-            maxWidth: "275px"
+        var defaultHeadAndFoot = {
+          show:true,
+          height: '60px',
+          padding: ['9px', '9px', '9px', '9px']
+        };
+
+        var layoutConfig={
+          westCol: {
+            width: '20%',
+            minWidth: '60px',
+            maxWidth: '400px',
+            show: true,
+            head:angular.copy(defaultHeadAndFoot),
+            body:angular.copy(defaultBody),
+            foot:angular.copy(defaultHeadAndFoot)
           },
-          eastClassInfo:{
-            width: "20%",
-            minWidth: "60px",
-            maxWidth: "275px"
+          mainCol: {
+            // width: CALCULATED BASED ON REMAINDER
+            head:angular.copy(defaultHeadAndFoot),
+            body:angular.copy(defaultBody),
+            foot:angular.copy(defaultHeadAndFoot)
           },
-          headRowHeight: "60px",
-          footRowHeight: "60px",
-          outsideBorder: "3px",
-          insideBorder: "3px",
-          insidePadding: "9px",
-          transition: 'all linear .1s'
-        }
+          eastCol: {
+            width: '20%',
+            minWidth: '60px',
+            maxWidth: '400px',
+            show: true,
+            head:angular.copy(defaultHeadAndFoot),
+            body:angular.copy(defaultBody),
+            foot:angular.copy(defaultHeadAndFoot)
+          },
+          outsideBorder: '10px',
+          insideBorder: '5px',
+          transition: 'all ease-in .1s'
+        };
 
         angular.extend(layoutConfig, scope.layoutConfig);
 
-        //Some aliases
-        var cc;
-        var wci;
-        var eci;
+        // CC is used for the calculated config, used a short name
+        // since it is referenced a lot for determinig the layout.
+        // The calculated config contains objects with percentages
+        // and pixel sizes in CSS normalized into pixel size in numbers.
+        var cc = {};
+        
+        // Some aliases to the parts of the cc for further condensing the code
 
-        var calculatedConfig = cc = {};
+        // cc.westCol
+        var wc;
+        // cc.eastCol
+        var ec;
+        // cc.mainCol
+        var mc;
+
         var lc = layoutConfig;
 
-        //Function determines all the pixel sizes as Numbers
-        //based on the string input, converts each based on
-        //the percentage or the value supplied.
+        // Function determines all the pixel sizes as Numbers based on the
+        // string input, converts each based on the percentage or the value
+        // supplied.
         function _calcPixelSizes(inputObj, resultObj){
           _.forOwn(inputObj, function(value, key, obj){
-            if(key == "width"){
+            if(key == 'width'){
               resultObj[key] = determinePixelSize(obj); 
+            }
+            else if(angular.isArray(value)){
+              resultObj[key] = [];
+              _.forEach(value, function(item){
+                resultObj[key].push(normalizePercentAndPixel(item));
+              });
             }
             else if(angular.isString(value)) {
               resultObj[key] = normalizePercentAndPixel(value);
             }
             else if(angular.isObject(value)){
               resultObj[key] = {};
-              calcPixelSizes(value, resultObj[key]);
+              _calcPixelSizes(value, resultObj[key]);
+            }
+            else /* if(typeof value === 'boolean') passing through any other type currently only boolean*/{
+              resultObj[key] = value;
             }
           });
-        };
+        }
+
+
+        // Prepares the calculated config object for use in the setting of styles.
+        // Initially the numbers are needed to calculate positions but then for
+        // applying the values to the stylesheet the values need 'px' appended.
+        function processCalculatedConfig(inputObj, resultObj){
+          _.forOwn(inputObj, function(value, key){
+            if(key == 'padding'){
+              resultObj.padding = value[TOP]+'px '+value[RIGHT]+'px '+value[BOTTOM]+'px '+value[LEFT]+'px'; 
+            }
+            else if(angular.isObject(value)){
+              resultObj[key] = {};
+              processCalculatedConfig(value, resultObj[key]);
+            }
+            else if(typeof value === 'boolean'){
+              // Dropping boolean values
+            }
+            else{
+              resultObj[key] = value+'px';
+            }
+          });
+        }
         
+        // Wrapper function for calling the recursive _calcPixelSizes afterwards
+        //sets up some aliases to parts of the calculated configuration
         function calcPixelSizes(inputObj, resultObj){
           _calcPixelSizes(inputObj, resultObj);
+          
+          console.log(resultObj);
 
-          wci = cc.westClassInfo;
-          eci = cc.eastClassInfo;
-        };
+          mc = cc.mainCol;
+          wc = cc.westCol;
+          ec = cc.eastCol;
+        }
 
         function determinePixelSize(classInfo){
           var classWidth = normalizePercentAndPixel(classInfo.width);
@@ -212,9 +409,15 @@
           return Math.ceil(classWidth);
         }
 
+        // Takes a string argument and checks for  %, if it's present then it
+        // interprets the input using parseInt and does the calculation based
+        // on the height of the element this directive is used on.
+        // If no percentage is found and parseInt returns something other than
+        // NaN, the parsed number is returned, if parseInt returns NaN for the
+        // input, 0 is returned.
         function normalizePercentAndPixel(stringValue){
           var parsed = parseInt(stringValue);
-          if(stringValue.indexOf("%")!=-1)
+          if(stringValue.indexOf('%')!=-1)
             return parsed/100*element[0].offsetWidth;
           else
           {
@@ -225,99 +428,140 @@
         }
 
         function recalcSizes(){
+          console.log('lc',scope.layoutConfig);
+          angular.extend(layoutConfig, scope.layoutConfig);
           calcPixelSizes(lc, cc);
           updateStyles();
-        };
+        }
         
+        function getPanelsStyles(panelName){
+          return scope.panels[panelName][0].style;
+        }
+
+        function assignPanelStyles(panelNames, styles){
+          _.forEach(panelNames, function(onePanel){
+            angular.extend(getPanelsStyles(onePanel), styles);
+          });
+        }
+
         function updateStyles() {
-          if(!wci)
+          if(!wc)
             return;
-          westWidth = wci.width;
-          eastWidth = eci.width;
+
           
-          //Used to setup the main column styles
-          var newStyle = {};
+          // For each of the columns need to determine for each of the three panels the values for the
+          // position and size of each panel based on the show booleans.
+
+          // Calculate West Column Values
+          wc.foot.width =
+          wc.body.width =
+          wc.head.width = wc.width;
+
+          ec.foot.width =
+          ec.body.width =
+          ec.head.width = ec.width;
+
+          wc.head.top = 
+          wc.head.left =
+          wc.body.top =
+          wc.body.left =
+          wc.body.bottom =
+          wc.foot.left =
+          wc.foot.bottom =
+          mc.head.top =
+          mc.foot.bottom =
+          mc.body.top =
+          mc.body.right =
+          mc.body.bottom =
+          mc.body.left =
+          ec.head.top =
+          ec.head.right =
+          ec.body.right =
+          ec.body.top =
+          ec.body.bottom =
+          ec.foot.right =
+          ec.foot.bottom = cc.outsideBorder;
           
-          if(!scope.showWest) {
-            newStyle.left=cc.outsideBorder + "px";
+
+          function calcVPositions(panel, body, property){
+            if(panel.show){
+              body[property] = cc.outsideBorder+panel.height+panel.padding[TOP]+panel.padding[BOTTOM]+cc.insideBorder;
+            }
+            else {
+              panel[property] = -(cc.outsideBorder+panel.height+panel.padding[TOP]+panel.padding[BOTTOM]);
+            }            
+          }
+
+          function calcHPositions(panel, sibling, property){
+            panel[property] = cc.outsideBorder + sibling.width + sibling.padding[LEFT]+sibling.padding[RIGHT] + cc.insideBorder;
+          }
+
+          // West column calculate top and bottom for panel and body
+          calcVPositions(wc.head,wc.body,'top');
+          calcVPositions(wc.foot,wc.body,'bottom');
+
+          // Main column calculate top and bottom for panel and body
+          calcVPositions(mc.head,mc.body,'top');
+          calcVPositions(mc.foot,mc.body,'bottom');
+          
+          // East column calculate top and bottom for panel and body
+          calcVPositions(ec.head,ec.body,'top');
+          calcVPositions(ec.foot,ec.body,'bottom');
             
-            scope.panels['westBody'][0].style.left = scope.panels['westHead'][0].style.left = scope.panels['westFoot'][0].style.left = -(westWidth+cc.insidePadding*2) + "px";
-          }
-          else {
-            newStyle.left = (westWidth+cc.insideBorder+cc.outsideBorder+cc.insidePadding*2)+"px";
-            scope.panels['westBody'][0].style.left = scope.panels['westHead'][0].style.left = scope.panels['westFoot'][0].style.left = cc.outsideBorder + "px";
-          }
+          // Main column head caclulate left and right
+          calcHPositions(mc.head, wc.head, 'left');
+          calcHPositions(mc.head, ec.head, 'right');
+
+          // Main column body caclulate left and right
+          calcHPositions(mc.body, wc.body, 'left');
+          calcHPositions(mc.body, ec.body, 'right');
+
+          // Main column foot caclulate left and right
+          calcHPositions(mc.foot, wc.foot, 'left');
+          calcHPositions(mc.foot, ec.foot, 'right');
 
 
-          if(!scope.showEast) {
-            newStyle.right = cc.outsideBorder + "px";
-            scope.panels['eastBody'][0].style.right = scope.panels['eastHead'][0].style.right = scope.panels['eastFoot'][0].style.right = -(eastWidth+cc.insidePadding*2) + "px";
-          }
-          else {
-            newStyle.right = (eastWidth+cc.insideBorder+cc.outsideBorder+cc.insidePadding*2)+"px";
-            scope.panels['eastBody'][0].style.right = scope.panels['eastHead'][0].style.right = scope.panels['eastFoot'][0].style.right = cc.outsideBorder + "px";
-          }
+          // Create a new object to populate with all the values including the
+          // 'px' prefix on all the values so they can be applied as styles
+          var pcc = {};
+          processCalculatedConfig(cc,pcc);
+          console.log('processed', pcc);
 
-          var bodyRow = {};
-          if(!scope.showHead){
-            bodyRow.top = cc.outsideBorder;
-            StyleSheetHandler.createCSSSelector('.head-row', 'position: absolute;  top: '+(-(cc.outsideBorder+cc.headRowHeight+cc.insidePadding*2))+'px;height:'+cc.headRowHeight+'px;');
-          }
-          else{
-            StyleSheetHandler.createCSSSelector('.head-row', 'position: absolute;  top: '+cc.outsideBorder+'px;height:'+cc.headRowHeight+'px;');
-            bodyRow.top = cc.headRowHeight+cc.outsideBorder+cc.insideBorder+cc.insidePadding*2;
-          }
-          if(!scope.showFoot){
-            bodyRow.bottom = cc.outsideBorder;
-            StyleSheetHandler.createCSSSelector('.foot-row', 'position: absolute;  bottom: '+(-(cc.outsideBorder+cc.footRowHeight+cc.insidePadding*2))+'px;height:'+cc.footRowHeight+'px;');
-          }
-          else{
-            StyleSheetHandler.createCSSSelector('.foot-row', 'position: absolute;  bottom: '+cc.outsideBorder+'px;height:'+cc.footRowHeight+'px;');
-            bodyRow.bottom = cc.footRowHeight+cc.outsideBorder+cc.insideBorder+cc.insidePadding*2;
-          }
-          StyleSheetHandler.createCSSSelector('.body-row', 'position: absolute;  top: '+bodyRow.top+'px; bottom: '+bodyRow.bottom+'px;');
-          
-          angular.extend(scope.panels['mainBody'][0].style, newStyle);
-          angular.extend(scope.panels['mainHead'][0].style, newStyle);
-          angular.extend(scope.panels['mainFoot'][0].style, newStyle);
+          assignPanelStyles(['westHead'], pcc.westCol.head);
+          assignPanelStyles(['westBody'], pcc.westCol.body);
+          assignPanelStyles(['westFoot'], pcc.westCol.foot);
 
-          //Deal with CSS selectors
-          StyleSheetHandler.createCSSSelector('.west-col', 'position: absolute;  left: '+cc.outsideBorder+'px;width: '+wci.width+'px;');
-          StyleSheetHandler.createCSSSelector('.east-col', 'position: absolute;  right: '+cc.outsideBorder+'px;width: '+eci.width+'px;');
-        };
+          assignPanelStyles(['eastHead'], pcc.eastCol.head);
+          assignPanelStyles(['eastBody'], pcc.eastCol.body);
+          assignPanelStyles(['eastFoot'], pcc.eastCol.foot);
 
-        scope.$watch('showWest', updateStyles);
-        scope.$watch('showEast', updateStyles);
-        scope.$watch('showHead', updateStyles);
-        scope.$watch('showFoot', updateStyles);
-
-        angular.element($window).bind('resize', recalcSizes);
-        angular.element(document).ready(setup);
-
-        function setup(){
-          calcPixelSizes(lc, cc);
-
-          StyleSheetHandler.createCSSSelector('.west-col, .main-col, .east-col', 'padding:'+cc.insidePadding+'px;');
-             
-          /*****************************************************( Positions & Heights)*/
-          StyleSheetHandler.createCSSSelector('.head-row', 'position: absolute;  top: '+cc.outsideBorder+'px;height:'+cc.headRowHeight+'px;');
-          StyleSheetHandler.createCSSSelector('.body-row', 'position: absolute;  top: '+(cc.headRowHeight+cc.outsideBorder+cc.insideBorder+cc.insidePadding*2)+'px; bottom: '+(cc.footRowHeight+cc.outsideBorder+cc.insideBorder+cc.insidePadding*2)+'px;');
-          StyleSheetHandler.createCSSSelector('.foot-row', 'position: absolute;  bottom: '+cc.outsideBorder+'px;height:'+cc.footRowHeight+'px;');
-          StyleSheetHandler.createCSSSelector('.west-col', 'position: absolute;  left: '+cc.outsideBorder+'px;width: '+wci.width+'px;');
-          StyleSheetHandler.createCSSSelector('.east-col', 'position: absolute;  right: '+cc.outsideBorder+'px;width: '+eci.width+'px;');
-          StyleSheetHandler.createCSSSelector('.main-col', 'left:0px; right:0px');
-
-          updateStyles();
-
+          assignPanelStyles(['mainHead'], pcc.mainCol.head);
+          assignPanelStyles(['mainBody'], pcc.mainCol.body);
+          assignPanelStyles(['mainFoot'], pcc.mainCol.foot);
+         
           //Delaying adding the transition so it's not seen on first load
           $timeout(function(){
             /*****************************************************( Transition )*/
             StyleSheetHandler.createCSSSelector('.head-row, .body-row, .foot-row', 'transition:'+lc.transition+';');
-          })
+          });
+        }
+
+        // If the config changes or the window is resized, recalculate the
+        // positions and sizes of the panels
+        scope.$watch('layoutConfig', recalcSizes, true);
+        angular.element($window).bind('resize', recalcSizes);
+
+        // On document ready initialize base values for CSS
+        angular.element(document).ready(setup);
+
+        function setup(){
+          calcPixelSizes(lc, cc);
+          updateStyles();
+
         }
       }
-    }
-  })
+    };
+  });
 
   function createPanelDirectives(){
 
@@ -329,17 +573,17 @@
           link: function (scope, element, attr, holyGrailCtrl) {
             holyGrailCtrl.addPanel(name, element);
           }
-        }
+        };
       });
     }
     
-    var panels = ["westBody", "westHead", "westFoot", "eastBody", "eastHead", "eastFoot", "mainBody", "mainHead", "mainFoot"];
+    var panels = ['westBody', 'westHead', 'westFoot', 'eastBody', 'eastHead', 'eastFoot', 'mainBody', 'mainHead', 'mainFoot'];
 
     for (var i = panels.length - 1; i >= 0; i--) {
       var curPanel = panels[i];
       makeDirective(curPanel);
-    };
-  };
+    }
+  }
   createPanelDirectives();
 
 })();
