@@ -11,6 +11,7 @@
       $scope.myModel = {
         layoutConfig:{
           westCol: {
+            show:true,
             width: '20%',
             minWidth: '60px',
             maxWidth: '400px',
@@ -45,6 +46,7 @@
             }
           },
           eastCol: {
+            show:true,
             width: '20%',
             minWidth: '60px',
             maxWidth: '400px',

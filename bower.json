@@ -5,6 +5,11 @@
     "dist/itHolyGrail.js",
     "dist/styles/optimized.css"
   ],
+  "ignore": [
+    "app/",
+    "/*.*",
+    "/.*"
+  ],
   "dependencies": {
     "angular": "~1.2.0",
     "lodash": "~2.4.1"
@@ -15,6 +20,7 @@
     "angular-bootstrap": "~0.10.0",
     "bootstrap": "~3.1.1",
     "angular-animate": "~1.2.16",
-    "angular-ui-router": "~0.2.11"
+    "angular-ui-router": "~0.2.11",
+    "it-debug-panel": "https://github.com/shusain/itDebugPanel.git#develop"
   }
 }

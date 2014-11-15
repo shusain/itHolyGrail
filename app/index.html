@@ -16,7 +16,11 @@
       rel="stylesheet"
       type="text/css"
       href="bower_components/bootstrap/dist/css/bootstrap.css"/>
-
+    
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="bower_components/it-debug-panel/dist/styles/optimized.css"/>
 		<!-- build:css styles/optimized.css -->
 		<link
       rel="stylesheet"
@@ -34,7 +38,7 @@
 
 	<!-- BODY -->
 	<body ng-controller="TestCtrl">
-		<debug-panel options="myModel.layoutConfig" ng-show="myModel.debugMode">
+		<debug-panel options="myModel.layoutConfig" panel-visible="myModel.debugMode">
 		</debug-panel>
 			
 		<holy-grail
@@ -70,8 +74,12 @@
 			type="text/javascript"
 			src="bower_components/angular/angular.js">
 		</script>
-		
 		<script
+      type="text/javascript"
+      src="bower_components/it-debug-panel/dist/itDebugPanel.min.js">
+    </script>
+		
+    <script
 			type="text/javascript"
 			src="scripts/mainApp.js">
 		</script>
