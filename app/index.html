@@ -5,7 +5,6 @@
     <title></title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>  
-    <!-- <link rel="stylesheet" type="text/css" href="/bower_components/project-template/dist/styles/optimized.css"/> -->
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <!-- build:css(.) styles/vendor.css -->
     <!-- bower:css -->
@@ -39,11 +38,13 @@
 
         <div class="main-head main-col head-row">4</div>
         <div class="main-body main-col body-row">5
-          <button class="btn btn-primary" ng-click="toggle();">Toggle</button>
-          <button class="btn btn-primary" ng-click="toggleWest();">Toggle West</button>
-          <button class="btn btn-primary" ng-click="toggleEast();">Toggle East</button>
-          <button class="btn btn-primary" ng-click="toggleHead();">Toggle Head</button>
-          <button class="btn btn-primary" ng-click="toggleFoot();">Toggle Foot</button>
+          <button class="btn btn-primary" ng-click="toggleAll();">Toggle</button>
+          <button class="btn btn-primary" ng-click="togglePanel('west','head');">Toggle West Head</button>
+          <button class="btn btn-primary" ng-click="togglePanel('west','foot');">Toggle West Foot</button>
+          <button class="btn btn-primary" ng-click="togglePanel('main','head');">Toggle Main Head</button>
+          <button class="btn btn-primary" ng-click="togglePanel('main','foot');">Toggle Main Foot</button>
+          <button class="btn btn-primary" ng-click="togglePanel('east','head');">Toggle East Head</button>
+          <button class="btn btn-primary" ng-click="togglePanel('east','foot');">Toggle East Foot</button>
         </div>
         <div class="main-foot main-col foot-row">6</div>
 
