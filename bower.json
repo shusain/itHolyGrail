@@ -12,7 +12,8 @@
     "angular-animate": "1.2.16",
     "angular-touch": "1.2.16",
     "angular-route": "1.2.16",
-    "it-holy-grail": "https://github.com/shusain/itHolyGrail.git#develop"
+    "it-holy-grail": "https://github.com/shusain/itHolyGrail.git#develop",
+    "it-debug-panel": "https://github.com/shusain/itDebugPanel.git#develop"
   },
   "devDependencies": {
     "angular-mocks": "1.2.16",

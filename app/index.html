@@ -10,6 +10,8 @@
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="bower_components/it-holy-grail/dist/styles/optimized.css" />
+    <link rel="stylesheet" href="bower_components/bootstrap-css-only/css/bootstrap.css" />
+    <link rel="stylesheet" href="bower_components/it-debug-panel/dist/styles/optimized.css" />
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
@@ -22,13 +24,13 @@
     <![endif]-->
 
     <!-- Add your site or application content here -->
-    
+    <debug-panel  options="myModel"
+                  panel-visible="myModel.debugMode">
+    </debug-panel>
+
+
     <holy-grail
       ng-cloak
-      show-west="myModel.showWest"
-      show-east="myModel.showEast"
-      show-head="myModel.showHead"
-      show-foot="myModel.showFoot"
       layout-config="myModel.layoutConfig"
       class="desktop-layout">
 
@@ -38,13 +40,18 @@
 
         <div class="main-head main-col head-row">4</div>
         <div class="main-body main-col body-row">5
+          <button class="btn btn-danger" ng-click="myModel.debugMode = !myModel.debugMode">Debug</button>
           <button class="btn btn-primary" ng-click="toggleAll();">Toggle</button>
-          <button class="btn btn-primary" ng-click="togglePanel('west','head');">Toggle West Head</button>
-          <button class="btn btn-primary" ng-click="togglePanel('west','foot');">Toggle West Foot</button>
-          <button class="btn btn-primary" ng-click="togglePanel('main','head');">Toggle Main Head</button>
-          <button class="btn btn-primary" ng-click="togglePanel('main','foot');">Toggle Main Foot</button>
-          <button class="btn btn-primary" ng-click="togglePanel('east','head');">Toggle East Head</button>
-          <button class="btn btn-primary" ng-click="togglePanel('east','foot');">Toggle East Foot</button>
+          <button class="btn btn-primary" ng-click="togglePanel('west','head')">Toggle West Head</button>
+          <button class="btn btn-primary" ng-click="togglePanel('west','foot')">Toggle West Foot</button>
+          <button class="btn btn-primary" ng-click="togglePanel('main','head')">Toggle Main Head</button>
+          <button class="btn btn-primary" ng-click="togglePanel('main','foot')">Toggle Main Foot</button>
+          <button class="btn btn-primary" ng-click="togglePanel('east','head')">Toggle East Head</button>
+          <button class="btn btn-primary" ng-click="togglePanel('east','foot')">Toggle East Foot</button>
+          <button class="btn btn-primary" ng-click="toggleEast()">Toggle East</button>
+          <button class="btn btn-primary" ng-click="toggleWest()">Toggle West</button>
+          <button class="btn btn-primary" ng-click="toggleHead()">Toggle Head</button>
+          <button class="btn btn-primary" ng-click="toggleFoot()">Toggle Foot</button>
         </div>
         <div class="main-foot main-col foot-row">6</div>
 
@@ -85,6 +92,7 @@
     <script src="bower_components/angular-route/angular-route.js"></script>
     <script src="bower_components/lodash/dist/lodash.compat.js"></script>
     <script src="bower_components/it-holy-grail/dist/itHolyGrail.js"></script>
+    <script src="bower_components/it-debug-panel/dist/itDebugPanel.min.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
